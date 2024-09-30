@@ -1,0 +1,43 @@
+{
+  "name": "@ziziyi/ext",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./dev": {
+      "import": "./dist/dev.mjs",
+      "require": "./dist/dev.js",
+      "types": "./dist/dev.d.ts"
+    },
+    "./vue": {
+      "import": "./dist/vue.mjs",
+      "require": "./dist/vue.js",
+      "types": "./dist/vue.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/dev.ts src/vue.ts --format esm --dts --target es2020",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chrome",
+    "extension",
+    "devtools"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "@vueuse/core": "^11.0.3",
+    "vue": "^3.5.6"
+  }
+}
