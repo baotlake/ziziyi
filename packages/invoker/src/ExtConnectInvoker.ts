@@ -1,4 +1,8 @@
-import Invoker, { type InvokeReqMessage, type InvokeRes } from "./Invoker"
+import Invoker, {
+  type InvokeReq,
+  type InvokeReqMsg,
+  type InvokeRes,
+} from "./Invoker"
 
 const defaultOptions = {
   invokeMsgType: "invoke-request",
@@ -16,23 +20,22 @@ class ExtConnectInvoker extends Invoker {
     this.resMsgType = options.resMsgType
   }
 
-  public async send(req: InvokeReqMessage & { key: string }) {
+  public async send(msg: InvokeReqMsg, req: InvokeReq) {
     if (!this.port) {
       throw new Error("Port is not connected")
     }
 
-    this.port.postMessage({ type: this.invokeMsgType, ...req })
-    return { key: req.key }
+    this.port.postMessage({ type: this.invokeMsgType, ...msg })
   }
 
-  public sendRes(res: InvokeRes, port: chrome.runtime.Port) {
+  public async sendRes(res: InvokeRes, port: chrome.runtime.Port) {
     if (!this.port) {
       return
     }
     this.port.postMessage({ type: this.resMsgType, ...res })
   }
 
-  public listen(onConnect: (port: chrome.runtime.Port) => void) {
+  public listen(onConnect?: (port: chrome.runtime.Port) => void) {
     const self = this
     const handleConnect = (port: chrome.runtime.Port) => {
       if (port.name === self.name) {
@@ -47,7 +50,7 @@ class ExtConnectInvoker extends Invoker {
             self.handleResMsg(message)
           }
         })
-        onConnect(port)
+        onConnect?.(port)
       }
     }
 
@@ -78,6 +81,10 @@ class ExtConnectInvoker extends Invoker {
         this.handleResMsg(message)
       }
     })
+  }
+
+  public get isConnected(): boolean {
+    return !!this.port
   }
 }
 

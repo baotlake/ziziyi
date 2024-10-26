@@ -1,47 +1,49 @@
-export type InvokeReqMessage = {
-  func: string
-  args?: any[]
-  key?: string
+export type FuncName = string | number
+
+export interface InvokeReqMsg<T = any[]> {
+  key?: string | number
+  func: FuncName
+  args?: T
   reply?: boolean
-  tabId?: number
   invoker?: string
 }
 
-export type InvokeReq = InvokeReqMessage & {
+export interface InvokeReq<T = any[]> extends InvokeReqMsg<T> {
   timeout?: number
   signal?: AbortSignal
   [key: string]: any
 }
 
 export interface InvokeRes {
-  key: string
+  key: string | number
   success: boolean
   value: any
-  func?: string
+  func?: FuncName
 }
 
 interface IInvoker {
   readonly name: string
   readonly IGNORE: Symbol
-  add(func: string, service: Function): this
+  add(func: FuncName, service: Function): this
   remove(func: string): this
   invoke<T = any>(req: InvokeReq): Promise<T | null>
   waitInvoke<T extends any[]>({
     func,
     timeout,
   }: {
-    func: string
+    func: FuncName
     timeout?: number
   }): Promise<{ args: T }>
 }
 
-export abstract class Invoker implements IInvoker {
+export abstract class Invoker<Req extends InvokeReq = InvokeReq> implements IInvoker {
   public readonly name: string
   protected readonly uniqueId: string
   private count: number
-  private services: Map<string, Function>
-  private responsePromises: Map<string, PromiseWithResolvers<any>>
-  private waitingPromises: Map<string, PromiseWithResolvers<any>>
+  private services: Map<FuncName, Function>
+  private responsePromises: Map<FuncName, PromiseWithResolvers<any>>
+  private waitingPromises: Map<FuncName, PromiseWithResolvers<any>>
+  private pendingInvokers: number
   public readonly IGNORE = Symbol("INVOKE_IGNORE")
 
   constructor(name: string) {
@@ -51,19 +53,86 @@ export abstract class Invoker implements IInvoker {
     this.responsePromises = new Map()
     this.services = new Map()
     this.waitingPromises = new Map()
+    this.pendingInvokers = 0
   }
 
   protected get key() {
     return `${this.name}-${this.uniqueId}-${this.count++}`
   }
 
-  protected async getReturnValue<T = any>(
-    key: string,
+  public get pendingReqs() {
+    return this.pendingInvokers
+  }
+
+  public abstract send(
+    msg: InvokeReqMsg,
     req: InvokeReq
-  ): Promise<T | null> {
+  ): PromiseLike<void | { res?: any }>
+  public abstract sendRes(res: InvokeRes, sender: any): PromiseLike<void>
+
+  public async invoke<T = any>(req: Req): Promise<T> {
+    const key = req.key || this.key
+    const receipt = await this.send(
+      {
+        key: key,
+        func: req.func,
+        args: req.args,
+        reply: req.reply,
+        invoker: this.uniqueId,
+      },
+      req
+    )
+    return this.getReturnValue<T>(key, req, receipt)
+  }
+
+  public add(func: FuncName, service: Function) {
+    this.services.set(func, service)
+    return this
+  }
+
+  public remove(func: FuncName) {
+    this.services.delete(func)
+    return this
+  }
+
+  public waitInvoke<T extends any[]>({
+    func,
+    timeout,
+  }: {
+    func: FuncName
+    timeout?: number
+  }): Promise<{ args: T }> {
+    const p = this.waitingPromises.get(func) || Promise.withResolvers()
+    this.waitingPromises.set(func, p)
+
+    let timer: number
+    if (timeout && timeout > 0) {
+      timer = setTimeout(
+        () => p.reject(`wait invoke "${this.name}" timeout: ${func}`),
+        timeout
+      )
+    }
+
+    p.promise.finally(() => {
+      this.waitingPromises.delete(func)
+      timer && clearTimeout(timer)
+    })
+
+    return p.promise
+  }
+
+  protected async getReturnValue<T = any>(
+    key: string | number,
+    req: InvokeReq,
+    receipt?: { res?: any } | void
+  ): Promise<T> {
+    if (receipt && receipt.res) {
+      return receipt.res as T
+    }
+
     const { func, timeout, signal, reply } = req
     if (reply == false) {
-      return null
+      return null as T
     }
 
     const p = this.responsePromises.get(key) || Promise.withResolvers()
@@ -91,7 +160,7 @@ export abstract class Invoker implements IInvoker {
     return p.promise
   }
 
-  protected setReturnValue(key: string, success: boolean, value: any) {
+  protected setReturnValue(key: string | number, success: boolean, value: any) {
     const p = this.responsePromises.get(key)
     if (p) {
       const fn = success != false ? p.resolve : p.reject
@@ -112,100 +181,55 @@ export abstract class Invoker implements IInvoker {
     this.setReturnValue(key, success, value)
   }
 
-  public async handleReqMsg(message: InvokeReqMessage, sender?: any) {
-    const { key, func, args, reply, invoker } = message
-    if (invoker == this.uniqueId) {
-      return
-    }
-
-    let result = null
-    let error = null
-
+  public async handleReqMsg(req: Req, sender?: any) {
+    this.pendingInvokers++
     try {
-      const waiting = this.waitingPromises.get(func)
-      if (waiting) {
-        waiting.resolve(args)
+      const { key, func, args, reply, invoker } = req
+      if (invoker == this.uniqueId) {
+        return
       }
 
-      const service = this.services.get(func)
-      if (service) {
-        result = await service(...(args || []))
-      } else {
-        error = `unknown service: ${func}`
-        console.warn(`unknown service: ${func}`)
-        return null
+      let result = null
+      let error = null
+
+      try {
+        const waiting = this.waitingPromises.get(func)
+        if (waiting) {
+          waiting.resolve(args)
+        }
+
+        const service = this.services.get(func)
+        if (service) {
+          result = await service(...(args || []))
+        } else {
+          error = `unknown service: ${func}`
+          console.warn(`unknown service: ${func}`)
+          return null
+        }
+      } catch (err) {
+        console.error("invoke error: ", err)
+        error = err
       }
-    } catch (err) {
-      console.error("invoke error: ", err)
-      error = err
+
+      if (result == this.IGNORE) {
+        return
+      }
+
+      const res: InvokeRes = {
+        key: key!,
+        success: !error,
+        value: !error ? result : error,
+        func,
+      }
+
+      if (sender && reply != false) {
+        await this.sendRes(res, sender)
+      }
+      return res
+    } finally {
+      this.pendingInvokers--
     }
-
-    if (result == this.IGNORE) {
-      return
-    }
-
-    const res: InvokeRes = {
-      key: key!,
-      success: !error,
-      value: !error ? result : error,
-      func,
-    }
-
-    if (sender && reply != false) {
-      this.sendRes(res, sender)
-    }
-    return res
   }
-
-  public async invoke<T = any>(req: InvokeReq): Promise<T | null> {
-    const { key } = await this.send({
-      func: req.func,
-      args: req.args,
-      key: req.key || this.key,
-      tabId: req.tabId,
-      reply: req.reply,
-    })
-    return this.getReturnValue<T>(key, req)
-  }
-
-  public waitInvoke<T extends any[]>({
-    func,
-    timeout,
-  }: {
-    func: string
-    timeout?: number
-  }): Promise<{ args: T }> {
-    const p = this.waitingPromises.get(func) || Promise.withResolvers()
-    this.waitingPromises.set(func, p)
-
-    let timer: number
-    if (timeout && timeout > 0) {
-      timer = setTimeout(
-        () => p.reject(`wait invoke "${this.name}" timeout: ${func}`),
-        timeout
-      )
-    }
-
-    p.promise.finally(() => {
-      this.waitingPromises.delete(func)
-      timer && clearTimeout(timer)
-    })
-
-    return p.promise
-  }
-
-  public add(func: string, service: Function) {
-    this.services.set(func, service)
-    return this
-  }
-
-  public remove(func: string) {
-    this.services.delete(func)
-    return this
-  }
-
-  public abstract send(req: InvokeReq): Promise<{ key: string }>
-  public abstract sendRes(res: InvokeRes, sender: any): void
 }
 
 export default Invoker

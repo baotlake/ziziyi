@@ -1,5 +1,5 @@
 import Invoker, {
-  type InvokeReqMessage,
+  type InvokeReqMsg,
   type InvokeReq,
   type InvokeRes,
 } from "./Invoker"
@@ -26,8 +26,8 @@ class FrameMsgInvoker extends Invoker {
   constructor(name: string, options: Options) {
     super(name)
     const { peer, peerOrigin, invokeMsgType, resMsgType } = {
-      ...options,
       ...defaultOptions,
+      ...options,
     }
     this.peer = peer
     this.peerOrigin = peerOrigin
@@ -35,7 +35,7 @@ class FrameMsgInvoker extends Invoker {
     this.resMsgType = resMsgType
   }
 
-  public async send(req: InvokeReqMessage & { key: string }) {
+  public async send(msg: InvokeReqMsg, req: InvokeReq) {
     const win =
       this.peer instanceof HTMLElement ? this.peer.contentWindow : this.peer
 
@@ -43,11 +43,10 @@ class FrameMsgInvoker extends Invoker {
       console.warn("WebviewInvoke: frame not ready", this.peer)
     }
 
-    win?.postMessage({ type: this.invokeMsgType, ...req }, this.peerOrigin)
-    return { key: req.key }
+    win?.postMessage({ type: this.invokeMsgType, ...msg }, this.peerOrigin)
   }
 
-  public sendRes(res: InvokeRes, sender: Window) {
+  public async sendRes(res: InvokeRes, sender: Window) {
     if (!sender) {
       return
     }
@@ -63,9 +62,10 @@ class FrameMsgInvoker extends Invoker {
 
   public listen() {
     const onMessage = (event: MessageEvent) => {
-      if (event.source !== this.peer) {
-        return
-      }
+      // if (event.source !== this.peer) {
+      //   return
+      // }
+      console.log("onMessage: ", event.data)
       const { type, ...message } = event.data
       switch (type) {
         case this.invokeMsgType:

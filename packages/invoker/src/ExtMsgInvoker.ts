@@ -1,5 +1,5 @@
 import Invoker, {
-  type InvokeReqMessage,
+  type InvokeReqMsg,
   type InvokeReq,
   type InvokeRes,
 } from "./Invoker"
@@ -9,7 +9,11 @@ const defaultOptions = {
   resMsgType: "invoke-response",
 }
 
-class ExtMsgInvoker extends Invoker {
+interface ExtInvokerReq extends InvokeReq {
+  tabId?: number
+}
+
+class ExtMsgInvoker extends Invoker<ExtInvokerReq> {
   public readonly invokeMsgType: string
   public readonly resMsgType: string
 
@@ -19,23 +23,23 @@ class ExtMsgInvoker extends Invoker {
     this.resMsgType = options.resMsgType
   }
 
-  public async send(req: InvokeReqMessage & { key: string }) {
+  public async send(msg: InvokeReqMsg, req: ExtInvokerReq) {
     if (req.tabId) {
       chrome.tabs.sendMessage(req.tabId, {
         type: this.invokeMsgType,
-        ...req,
+        tabId: req.tabId,
+        ...msg,
       })
     } else {
       chrome.runtime.sendMessage({
         type: this.invokeMsgType,
-        ...req,
+        tabId: req.tabId,
+        ...msg,
       })
     }
-
-    return { key: req.key }
   }
 
-  public sendRes(res: InvokeRes, sender: chrome.runtime.MessageSender) {
+  public async sendRes(res: InvokeRes, sender: chrome.runtime.MessageSender) {
     if (!sender) {
       return
     }

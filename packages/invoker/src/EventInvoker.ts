@@ -2,7 +2,7 @@ import {
   Invoker,
   type InvokeReq,
   type InvokeRes,
-  type InvokeReqMessage,
+  type InvokeReqMsg,
 } from "./Invoker"
 
 const defaultOptions = {
@@ -23,18 +23,17 @@ class EventInvoker extends Invoker {
     this.resMsgType = options.resMsgType
   }
 
-  public async send(req: InvokeReqMessage & { key: string }) {
+  public async send(msg: InvokeReqMsg, req: InvokeReq) {
     const event = new CustomEvent(this.eventType, {
       detail: {
         type: this.invokeMsgType,
-        message: req,
+        message: msg,
       },
     })
     document.dispatchEvent(event)
-    return { key: req.key }
   }
 
-  public sendRes(res: InvokeRes, sender: any) {
+  public async sendRes(res: InvokeRes, sender: any) {
     const event = new CustomEvent(this.eventType, {
       detail: {
         type: this.resMsgType,

@@ -11,18 +11,15 @@
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     },
     "./dev": {
       "import": "./dist/dev.mjs",
-      "require": "./dist/dev.js",
-      "types": "./dist/dev.d.ts"
+      "require": "./dist/dev.js"
     },
     "./vue": {
       "import": "./dist/vue.mjs",
-      "require": "./dist/vue.js",
-      "types": "./dist/vue.d.ts"
+      "require": "./dist/vue.js"
     }
   },
   "scripts": {

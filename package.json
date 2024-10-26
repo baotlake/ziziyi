@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "cd packages/analytics && npm run build && cd ../dom && npm run build && cd ../ext && npm run build && cd ../invoker && npm run build"
   },
   "author": "",
   "license": "ISC",
