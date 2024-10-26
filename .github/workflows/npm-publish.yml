@@ -23,7 +23,7 @@ jobs:
       - run: | 
           cd packages/invoker
           npm run build
-          pm publish --provenance --access public
+          npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
@@ -42,7 +42,7 @@ jobs:
       - run: | 
           cd packages/ext
           npm run build
-          pm publish --provenance --access public
+          npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
@@ -61,7 +61,7 @@ jobs:
       - run: | 
           cd packages/dom
           npm run build
-          pm publish --provenance --access public
+          npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
@@ -80,6 +80,6 @@ jobs:
       - run: | 
           cd packages/analytics
           npm run build
-          pm publish --provenance --access public
+          npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
