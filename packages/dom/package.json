@@ -22,7 +22,15 @@
     "build": "tsup src/index.ts src/vue.ts --format cjs,esm --dts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/baotlake/ziziyi"
+  },
+  "author": {
+    "name": "HuanYang",
+    "email": "33485493+baotlake@users.noreply.github.com",
+    "url": "https://github.com/baotlake"
+  },
   "license": "ISC",
   "peerDependencies": {
     "@vueuse/core": "^11.0.3",
