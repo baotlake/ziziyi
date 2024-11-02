@@ -6,7 +6,7 @@ import {
 } from "./Invoker"
 
 const defaultOptions = {
-  eventType: "",
+  eventType: "ziziyi-invoke",
   invokeMsgType: "invoke-request",
   resMsgType: "invoke-response",
 }
@@ -33,7 +33,7 @@ class EventInvoker extends Invoker {
     document.dispatchEvent(event)
   }
 
-  public async sendRes(res: InvokeRes, sender: any) {
+  public async sendRes(res: InvokeRes, sender?: any) {
     const event = new CustomEvent(this.eventType, {
       detail: {
         type: this.resMsgType,
@@ -48,6 +48,15 @@ class EventInvoker extends Invoker {
       event: Event | CustomEvent<{ type: string; message: any }>
     ) => {
       if ("detail" in event) {
+        const { type, message } = event.detail
+        switch (type) {
+          case this.invokeMsgType:
+            this.handleReqMsg(message, event.type)
+            break
+          case this.resMsgType:
+            this.handleResMsg(message)
+            break
+        }
       }
     }
 
