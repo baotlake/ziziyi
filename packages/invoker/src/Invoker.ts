@@ -36,7 +36,9 @@ interface IInvoker {
   }): Promise<{ args: T }>
 }
 
-export abstract class Invoker<Req extends InvokeReq = InvokeReq> implements IInvoker {
+export abstract class Invoker<Req extends InvokeReq = InvokeReq>
+  implements IInvoker
+{
   public readonly name: string
   protected readonly uniqueId: string
   private count: number
@@ -45,6 +47,7 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq> implements IInv
   private waitingPromises: Map<FuncName, PromiseWithResolvers<any>>
   private pendingInvokers: number
   public readonly IGNORE = Symbol("INVOKE_IGNORE")
+  public currentSender: any = null
 
   constructor(name: string) {
     this.name = name
@@ -189,6 +192,7 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq> implements IInv
         return
       }
 
+      this.currentSender = sender
       let result = null
       let error = null
 
