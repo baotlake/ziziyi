@@ -56,7 +56,7 @@ class FrameMsgInvoker extends Invoker {
         type: this.resMsgType,
         ...res,
       },
-      chrome.runtime.getURL("")
+      this.peerOrigin
     )
   }
 
