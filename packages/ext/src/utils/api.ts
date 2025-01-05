@@ -15,3 +15,12 @@ export function setSession<T extends Record<string, any>>(key: T) {
   const storageArea = chrome.storage.session || chrome.storage.local
   return storageArea.set(key) as Promise<void>
 }
+
+/** Need `favicon` permission */
+export function faviconURL(url: string, size = 64) {
+  const u = new URL(chrome.runtime.getURL("/_favicon/"))
+  const pureUrl = url.split(/[?#]/)[0]
+  u.searchParams.set("pageUrl", pureUrl)
+  u.searchParams.set("size", size.toString())
+  return u.href
+}

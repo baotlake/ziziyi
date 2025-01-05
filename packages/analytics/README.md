@@ -17,15 +17,19 @@ const mp = new MP({
   debounce: 1000,
 })
 
-mp.set({
-  client_id: "client_id",
-  session_id: "session_id",
-})
+async function track(event, params) {
+  if (!mp.isInitialized) {
+    // implement your own getSessionData function
+    const { clientId, sessionId } = await getSessionData()
+    mp.set({
+      client_id: clientId,
+      session_id: sessionId,
+    })
+  }
 
-mp.track("event_name", {
-  name: "event_name",
-  params: {
-    key: "value",
-  },
-})
+  mp.track({
+    name: event,
+    params: params,
+  })
+}
 ```

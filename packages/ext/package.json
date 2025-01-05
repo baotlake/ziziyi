@@ -1,6 +1,6 @@
 {
   "name": "@ziziyi/ext",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -42,7 +42,7 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@vueuse/core": "^11.0.3",
-    "vue": "^3.5.6"
+    "@vueuse/core": ">=9.0.0",
+    "vue": ">=3.0.0"
   }
 }

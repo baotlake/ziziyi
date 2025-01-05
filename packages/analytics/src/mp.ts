@@ -93,6 +93,11 @@ export class MP {
     this.debouncedFlush()
   }
 
+  public get isInitialized() {
+    const { client_id, user_id } = this.properties
+    return !!client_id && !!user_id
+  }
+
   /**
    * Track an event
    */

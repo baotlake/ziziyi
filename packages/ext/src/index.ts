@@ -1,5 +1,6 @@
 export * from "./utils/api"
 export * from "./utils/util"
+export * from "./utils/i18n"
 
 // type Identity = {
 //   user_id: string
