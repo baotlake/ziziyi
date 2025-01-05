@@ -19,7 +19,7 @@
     "@vue/tsconfig": "^0.5.1",
     "@vueuse/core": "^11.0.3",
     "lodash-es": "^4.17.21",
-    "tsup": "^8.2.4",
+    "tsup": "^8.3.5",
     "turbo": "^2.1.1",
     "typescript": "^5.5.4",
     "ua-parser-js": "^1.0.38",
