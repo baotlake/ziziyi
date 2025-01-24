@@ -53,14 +53,14 @@ export enum Locale {
   ZH_TW = "zh-TW",
 }
 
-enum LocaleExtend {
+export enum LocaleExtend {
   Auto = "auto",
 }
 
 export type Language = Locale | LocaleExtend
 
 export const locales = Object.values(Locale)
-export const languages = [...locales, LocaleExtend.Auto]
+export const languages = [LocaleExtend.Auto, ...locales]
 
 export const rtlLanguages: Language[] = [
   Locale.AR, // Arabic

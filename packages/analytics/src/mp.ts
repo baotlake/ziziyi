@@ -53,6 +53,7 @@ export async function collect(config: MPConfig, payload: PayloadData) {
   await fetch(url, {
     method: "POST",
     body: JSON.stringify(payload),
+    keepalive: true,
   })
 }
 

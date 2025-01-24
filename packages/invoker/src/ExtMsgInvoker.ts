@@ -16,6 +16,7 @@ interface ExtInvokerReq extends InvokeReq {
 class ExtMsgInvoker extends Invoker<ExtInvokerReq> {
   public readonly invokeMsgType: string
   public readonly resMsgType: string
+  public currentSender: chrome.runtime.MessageSender | null = null
 
   constructor(name: string, options = defaultOptions) {
     super(name)
