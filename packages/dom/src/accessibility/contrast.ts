@@ -12,7 +12,10 @@ export function getImgContrast(
 
   // create offscreen canvas
   const canvas = document.createElement("canvas")
-  const ctx = canvas.getContext("2d", { alpha: true })!
+  const ctx = canvas.getContext("2d", {
+    alpha: true,
+    willReadFrequently: true,
+  })!
   canvas.width = canvasSize
   canvas.height = canvasSize
 

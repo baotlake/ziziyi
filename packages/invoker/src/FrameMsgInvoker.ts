@@ -5,7 +5,7 @@ import Invoker, {
 } from "./Invoker"
 
 type Options = {
-  peer: HTMLIFrameElement | Window
+  peer: HTMLIFrameElement | Window | (() => HTMLIFrameElement)
   peerOrigin?: string
   invokeMsgType?: string
   resMsgType?: string
@@ -18,7 +18,7 @@ const defaultOptions = {
 }
 
 class FrameMsgInvoker extends Invoker {
-  public readonly peer: HTMLIFrameElement | Window | null
+  public readonly peer: Options["peer"] | null
   public peerOrigin: string
   public readonly invokeMsgType: string
   public readonly resMsgType: string
@@ -39,11 +39,10 @@ class FrameMsgInvoker extends Invoker {
     if (!this.peer) {
       throw new Error("Peer is not set")
     }
-
     try {
-      const win =
-        "postMessage" in this.peer ? this.peer : this.peer.contentWindow
-      win?.postMessage({ type: this.invokeMsgType, ...msg }, this.peerOrigin)
+      const peer = typeof this.peer == "function" ? this.peer() : this.peer
+      const win = "postMessage" in peer ? peer : peer.contentWindow!
+      win.postMessage({ type: this.invokeMsgType, ...msg }, this.peerOrigin)
     } catch (error) {
       console.warn("WebviewInvoke: frame not ready", this.peer, error)
     }
@@ -71,7 +70,7 @@ class FrameMsgInvoker extends Invoker {
       if (!event.data || typeof event.data !== "object") {
         return
       }
-      // console.log("onMessage: ", event.data)
+      console.log("onMessage: ", event.data)
       const { type, ...message } = event.data
       switch (type) {
         case this.invokeMsgType:

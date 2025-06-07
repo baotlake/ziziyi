@@ -2,6 +2,7 @@ import { ref, onMounted, onUnmounted, computed } from "vue"
 
 type OnChange = (state: DocumentVisibilityState) => void
 
+/** @deprecated */
 export default function useVisibility(onChange?: OnChange) {
   const state = ref<DocumentVisibilityState>(
     globalThis.document?.visibilityState || "visible"

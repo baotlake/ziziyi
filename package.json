@@ -12,7 +12,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "packageManager": "npm@10.5.0",
   "devDependencies": {
+    "@types/babel__template": "^7.4.4",
     "@types/chrome": "^0.0.270",
     "@types/lodash-es": "^4.17.12",
     "@types/ua-parser-js": "^0.7.39",
@@ -20,7 +22,7 @@
     "@vueuse/core": "^11.0.3",
     "lodash-es": "^4.17.21",
     "tsup": "^8.3.5",
-    "turbo": "^2.1.1",
+    "turbo": "^2.4.4",
     "typescript": "^5.5.4",
     "ua-parser-js": "^1.0.38",
     "vue": "^3.5.4"
