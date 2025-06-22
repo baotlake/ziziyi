@@ -5,7 +5,7 @@ import Invoker, {
 } from "./Invoker"
 
 type Options = {
-  peer: HTMLIFrameElement | Window | (() => HTMLIFrameElement)
+  peer: HTMLIFrameElement | Window | (() => HTMLIFrameElement | Window)
   peerOrigin?: string
   invokeMsgType?: string
   resMsgType?: string
@@ -17,7 +17,7 @@ const defaultOptions = {
   resMsgType: "invoke-response",
 }
 
-class FrameMsgInvoker extends Invoker {
+class WindowMsgInvoker extends Invoker {
   public readonly peer: Options["peer"] | null
   public peerOrigin: string
   public readonly invokeMsgType: string
@@ -70,7 +70,7 @@ class FrameMsgInvoker extends Invoker {
       if (!event.data || typeof event.data !== "object") {
         return
       }
-      console.log("onMessage: ", event.data)
+      // console.log("onMessage: ", event.data)
       const { type, ...message } = event.data
       switch (type) {
         case this.invokeMsgType:
@@ -90,4 +90,4 @@ class FrameMsgInvoker extends Invoker {
   }
 }
 
-export { FrameMsgInvoker }
+export { WindowMsgInvoker }
