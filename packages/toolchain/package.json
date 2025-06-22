@@ -1,6 +1,6 @@
 {
   "name": "@ziziyi/toolchain",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -8,6 +8,16 @@
   "files": [
     "dist/**/*"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./svgr": {
+      "import": "./dist/svgr.mjs",
+      "require": "./dist/svgr.js"
+    }
+  },
   "sideEffects": false,
   "scripts": {
     "build": "tsup src/index.ts src/svgr.ts --format cjs,esm --dts",
