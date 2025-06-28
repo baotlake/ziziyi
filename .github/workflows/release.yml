@@ -15,6 +15,7 @@ jobs:
       contents: write
       pull-requests: write
       repository-projects: write
+      id-token: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -35,8 +36,12 @@ jobs:
           # This expects you to have a script called release which does a build for your packages and calls changeset publish
           publish: npm run release
         env:
+          NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # https://github.com/changesets/action/issues/311
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
 
       - name: Send a Slack notification if a publish happens
         if: steps.changesets.outputs.published == 'true'
