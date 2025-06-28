@@ -110,7 +110,7 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
 
     let timer: number
     if (timeout && timeout > 0) {
-      timer = setTimeout(
+      timer = window.setTimeout(
         () => p.reject(`wait invoke "${this.name}" timeout: ${func}`),
         timeout
       )
@@ -149,7 +149,7 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
 
     let timer: number
     if (timeout && timeout > 0) {
-      timer = setTimeout(
+      timer = window.setTimeout(
         () => p.reject(`"${this.name}" invoke timeout: ${func} key: ${key}`),
         timeout ?? 20000
       )

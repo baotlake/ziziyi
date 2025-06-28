@@ -1,6 +1,6 @@
 import { debounce, type DebouncedFunc } from "lodash-es"
 import UAParser from "ua-parser-js"
-import type { MPEvent, PayloadData } from "./mp.d"
+import type { MPEvent, PayloadData } from "./types"
 
 const DEFAULT_DEBOUNCE_TIME = 1000 * 3
 

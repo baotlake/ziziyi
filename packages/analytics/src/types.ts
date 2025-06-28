@@ -93,6 +93,14 @@ export interface UserLocation {
   continent_id?: string
 }
 
+export interface UserProperties {
+  [key: string]: any
+}
+
+export interface UserData {
+  [key: string]: any
+}
+
 export interface EventParams {
   /**
    * In order for user activity to display in reports like Realtime,
@@ -111,80 +119,58 @@ export interface MPEvent {
 }
 
 export interface PayloadData {
-  client_id: string
-  user_id?: string
-  /** Requests can have a maximum of 25 events. */
-  events: MPEvent[]
-  timestamp_micros?: number
-  user_agent?: string
-  device?: Device
-  consent?: {
-    ad_user_data?: string
-    ad_personalization?: string
-  }
-  /**
-   * User properties describe segments of your user base, such as language preference or geographic location.
-   * - User property names must be 24 characters or fewer.
-   * - User property values must be 36 characters or fewer.
-   */
-  user_properties?: {}
-  /** The user_id parameter must be present whenever user_data is provided. */
-  user_data?: {}
-}
-
-export interface PayloadData {
   /**
    * Required. A unique identifier for a client instance. In a web context, this is typically the Firebase Installation ID or a unique ID stored in a cookie.
    * @see https://developers.google.com/analytics/devguides/collection/protocol/ga4/sending-events?client_type=gtag#send_an_event
    */
-  client_id: string;
+  client_id: string
 
   /**
    * Optional. A unique identifier for a user. This is used for cross-platform and cross-device analysis.
    * Can include only UTF-8 characters.
    * @see https://support.google.com/analytics/answer/9213390
    */
-  user_id?: string;
+  user_id?: string
 
   /**
    * Optional. A Unix timestamp in microseconds, not milliseconds. Represents the time the event occurred.
    * This should only be set to record events that happened in the past.
    * Events can be backdated up to 3 calendar days based on the property's timezone.
    */
-  timestamp_micros?: number;
+  timestamp_micros?: number
 
   /**
    * Optional. The user agent string for the client.
    * Google Analytics will use this to derive device information if the `device` object is not provided.
    */
-  user_agent?: string;
+  user_agent?: string
 
   /**
    * Optional. The IP address Google Analytics uses to derive geographic information for the request.
    * Recommended for server-side implementations where the user's IP is known.
    */
-  ip_override?: string;
+  ip_override?: string
 
   /**
    * Optional. Structured information about the user's device.
    */
-  device?: Device;
+  device?: Device
 
   /**
    * Optional. Sets the geographic information for the request in a structured format.
    */
-  user_location?: UserLocation;
+  user_location?: UserLocation
 
   /**
    * Optional. User properties that describe segments of your user base, such as language preference or geographic location.
    */
-  user_properties?: UserProperties;
+  user_properties?: UserProperties
 
   /**
    * Optional. User-provided data for the user.
    * The `user_id` parameter must be present whenever `user_data` is provided.
    */
-  user_data?: UserData;
+  user_data?: UserData
 
   /**
    * Optional. Consent settings for the request.
@@ -195,23 +181,23 @@ export interface PayloadData {
      * Optional. Sets the user's consent for ads user data.
      * Allowed values are "granted" or "denied".
      */
-    ad_user_data?: 'granted' | 'denied';
+    ad_user_data?: "granted" | "denied"
 
     /**
      * Optional. Sets the user's consent for ad personalization.
      * Allowed values are "granted" or "denied".
      */
-    ad_personalization?: 'granted' | 'denied';
-  };
+    ad_personalization?: "granted" | "denied"
+  }
 
   /**
    * @deprecated Use the `ad_personalization` field of `consent` instead.
    * Optional. Set to `true` to indicate the user's data shouldn't be used for personalized ads.
    */
-  non_personalized_ads?: boolean;
+  non_personalized_ads?: boolean
 
   /**
    * Required. An array of event items. A maximum of 25 events can be sent per request.
    */
-  events: MPEvent[];
+  events: MPEvent[]
 }
