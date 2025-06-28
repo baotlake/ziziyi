@@ -1,10 +1,4 @@
-export {
-  collect,
-  MP,
-  type MPEvent,
-  type MPTrackEvent,
-  type PayloadData,
-  type MPConfig,
-} from "./mp"
+export { type PayloadData, type MPEvent } from "./mp.d"
+export { collect, MP, type MPTrackEvent, type MPConfig } from "./mp"
 
 export { genSessionId } from "./utils"

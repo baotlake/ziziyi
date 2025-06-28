@@ -1,55 +1,25 @@
 import { debounce, type DebouncedFunc } from "lodash-es"
 import UAParser from "ua-parser-js"
+import type { MPEvent, PayloadData } from "./mp.d"
 
 const DEFAULT_DEBOUNCE_TIME = 1000 * 3
-
-export type EventParams = {
-  /**
-   * In order for user activity to display in reports like Realtime,
-   * engagement_time_msec and session_id must be supplied as part of the params for an event.
-   */
-  engagement_time_msec?: string
-  session_id?: string
-  [key: string]: any
-}
-
-export type MPEvent = {
-  name: string
-  /** Events can have a maximum of 25 parameters. */
-  params?: EventParams
-  timestamp_micros?: number
-}
-
-export type PayloadData = {
-  client_id: string
-  user_id?: string
-  /** Requests can have a maximum of 25 events. */
-  events: MPEvent[]
-  timestamp_micros?: number
-  consent?: {
-    ad_user_data?: string
-    ad_personalization?: string
-  }
-  /**
-   * User properties describe segments of your user base, such as language preference or geographic location.
-   * - User property names must be 24 characters or fewer.
-   * - User property values must be 36 characters or fewer.
-   */
-  user_properties?: {}
-  /** The user_id parameter must be present whenever user_data is provided. */
-  user_data?: {}
-}
 
 export type MPConfig = {
   debug?: boolean
   measurement_id: string
   api_secret: string
+  /** If you want your data to be processed in the EU */
+  eu?: boolean
 }
 
 export async function collect(config: MPConfig, payload: PayloadData) {
   const { measurement_id, api_secret, debug } = config
+  const origin = config.eu
+    ? "https://region1.google-analytics.com"
+    : "https://www.google-analytics.com"
   const basePath = debug ? "/debug" : ""
-  const url = `https://www.google-analytics.com${basePath}/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`
+  const url = `${origin}${basePath}/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`
+
   await fetch(url, {
     method: "POST",
     body: JSON.stringify(payload),
@@ -57,18 +27,18 @@ export async function collect(config: MPConfig, payload: PayloadData) {
   })
 }
 
-type Properties = {
-  client_id?: string
-  user_id?: string
+type Properties = Partial<Omit<PayloadData, "events">> & {
   session_id?: string
 }
 
 type Options = MPConfig & {
   debounce?: number
   onFlush?: (properties: Properties) => PromiseLike<void>
+  ua?: string | boolean
 }
 
 export type MPTrackEvent = MPEvent & {
+  /** @deprecated  */
   parse_ua?: boolean | string
 }
 
@@ -87,6 +57,10 @@ export class MP {
       this.flush,
       this.options.debounce ?? DEFAULT_DEBOUNCE_TIME
     )
+    if (options.ua) {
+      this.properties.user_agent =
+        typeof options.ua == "string" ? options.ua : navigator.userAgent
+    }
   }
 
   public set(property: Properties) {
@@ -159,6 +133,7 @@ export class MP {
       })
 
       await collect(this.options, {
+        ...this.properties,
         client_id,
         user_id,
         events,
