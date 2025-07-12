@@ -6,10 +6,11 @@
   "scripts": {
     "build": "turbo build",
     "release": "npm run build && changeset publish",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "author": "",
   "license": "ISC",
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
@@ -27,6 +28,7 @@
     "turbo": "^2.4.4",
     "typescript": "^5.5.4",
     "ua-parser-js": "^1.0.38",
+    "vitest": "^3.2.4",
     "vue": "^3.5.4"
   }
 }

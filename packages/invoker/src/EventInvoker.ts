@@ -5,6 +5,13 @@ import {
   type InvokeReqMsg,
 } from "./Invoker"
 
+type Options = {
+  target?: EventTarget | (() => EventTarget)
+  eventType?: string
+  invokeMsgType?: string
+  resMsgType?: string
+}
+
 const defaultOptions = {
   eventType: "ziziyi-invoke",
   invokeMsgType: "invoke-request",
@@ -12,15 +19,22 @@ const defaultOptions = {
 }
 
 class EventInvoker extends Invoker {
+  public readonly target: Options["target"]
   public readonly eventType: string
   public readonly invokeMsgType: string
   public readonly resMsgType: string
+  private _unlisten?: () => void
 
-  constructor(name: string, options = defaultOptions) {
+  constructor(name: string, options: Options = {}) {
     super(name)
-    this.eventType = options.eventType || name
-    this.invokeMsgType = options.invokeMsgType
-    this.resMsgType = options.resMsgType
+    const { eventType, invokeMsgType, resMsgType, target } = {
+      ...defaultOptions,
+      ...options,
+    }
+    this.eventType = eventType || name
+    this.invokeMsgType = invokeMsgType
+    this.resMsgType = resMsgType
+    this.target = target
   }
 
   public async send(msg: InvokeReqMsg, req: InvokeReq) {
@@ -30,7 +44,12 @@ class EventInvoker extends Invoker {
         message: msg,
       },
     })
-    document.dispatchEvent(event)
+    const target =
+      typeof this.target === "function"
+        ? this.target()
+        : this.target || document
+
+    target.dispatchEvent(event)
   }
 
   public async sendRes(res: InvokeRes, sender?: any) {
@@ -40,10 +59,23 @@ class EventInvoker extends Invoker {
         message: res,
       },
     })
-    document.dispatchEvent(event)
+    const target =
+      typeof this.target === "function"
+        ? this.target()
+        : this.target || document
+
+    target.dispatchEvent(event)
   }
 
   public listen() {
+    if (this._unlisten) {
+      this._unlisten()
+    }
+    const target =
+      typeof this.target === "function"
+        ? this.target()
+        : this.target || document
+
     const onMessage = (
       event: Event | CustomEvent<{ type: string; message: any }>
     ) => {
@@ -60,11 +92,17 @@ class EventInvoker extends Invoker {
       }
     }
 
-    document.addEventListener(this.eventType, onMessage)
+    target.addEventListener(this.eventType, onMessage)
 
-    return () => {
-      document.removeEventListener(this.eventType, onMessage)
+    this._unlisten = () => {
+      target.removeEventListener(this.eventType, onMessage)
+      this._unlisten = undefined
     }
+    return this._unlisten
+  }
+
+  public unlisten() {
+    this._unlisten?.()
   }
 }
 

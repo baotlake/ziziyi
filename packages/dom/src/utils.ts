@@ -69,3 +69,15 @@ export function getPageIcon() {
 
   return location.origin + "/favicon.ico"
 }
+
+export function getCookieDomains(host: string, minLevel = 2): string[] {
+  const hostTokens = host.split(".")
+  const list = [host]
+
+  for (let i = 1; i <= hostTokens.length - minLevel; i++) {
+    const domain = "." + hostTokens.slice(i).join(".")
+    list.push(domain)
+  }
+
+  return list
+}
