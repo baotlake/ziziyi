@@ -20,11 +20,14 @@ export async function collect(config: MPConfig, payload: PayloadData) {
   const basePath = debug ? "/debug" : ""
   const url = `${origin}${basePath}/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`
 
-  await fetch(url, {
+  const res = await fetch(url, {
     method: "POST",
     body: JSON.stringify(payload),
     keepalive: true,
   })
+  if (res.ok) {
+    return res.json()
+  }
 }
 
 type Properties = Partial<Omit<PayloadData, "events">> & {
@@ -132,12 +135,17 @@ export class MP {
         return event
       })
 
-      await collect(this.options, {
-        ...this.properties,
+      const properties = { ...this.properties, session_id: undefined }
+      const res = await collect(this.options, {
+        ...properties,
         client_id,
         user_id,
         events,
       })
+
+      if (this.options.debug && res?.validationMessages?.length > 0) {
+        console.warn("GA validation messages", res.validationMessages)
+      }
     }
   }
 }

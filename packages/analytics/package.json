@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest --root ../.. -- ."
   },
   "peerDependencies": {
     "lodash-es": ">=4.17.21",
