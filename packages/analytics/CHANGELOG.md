@@ -1,5 +1,11 @@
 # @ziziyi/analytics
 
+## 1.0.3
+
+### Patch Changes
+
+- 159a19b: fix(analytics): Ensure session_id is correctly added to events
+
 ## 1.0.2
 
 ### Patch Changes
