@@ -5,6 +5,10 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts src/vue.ts --format cjs,esm --dts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "files": [
     "dist/**/*"
   ],
@@ -17,10 +21,6 @@
       "import": "./dist/vue.mjs",
       "require": "./dist/vue.js"
     }
-  },
-  "scripts": {
-    "build": "tsup src/index.ts src/vue.ts --format cjs,esm --dts",
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",

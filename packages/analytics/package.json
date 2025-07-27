@@ -5,6 +5,10 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "test": "vitest --root ../.. -- ."
+  },
   "files": [
     "dist/**/*"
   ],
@@ -13,10 +17,6 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     }
-  },
-  "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
-    "test": "vitest --root ../.. -- ."
   },
   "peerDependencies": {
     "lodash-es": ">=4.17.21",

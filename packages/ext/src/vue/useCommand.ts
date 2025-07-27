@@ -3,8 +3,8 @@ import { useEventListener } from "@vueuse/core"
 
 type Command = chrome.commands.Command
 
-export default function useCommand<T extends string>() {
-  const command = reactive<Record<string, Command>>({})
+export function useCommand<T extends string>() {
+  const command = reactive<Record<string, Command | undefined>>({})
 
   const updateCommand = () => {
     chrome.commands.getAll((commands) => {
@@ -19,7 +19,24 @@ export default function useCommand<T extends string>() {
     updateCommand()
   })
 
-  return command as Record<T, chrome.commands.Command>
+  return command as Record<T, Command | undefined>
 }
 
-export { useCommand }
+export function useCommands<T extends string>(
+  getAll = chrome.commands?.getAll
+) {
+  const command = reactive<{ [key in T]?: Command }>({})
+  const updateCommand = async () => {
+    const commands = await getAll()
+    for (const cmd of commands) {
+      ;(command as Record<T, Command>)[cmd.name! as T] = cmd
+    }
+    return commands
+  }
+
+  updateCommand()
+  useEventListener("focus", () => {
+    updateCommand()
+  })
+  return { command, updateCommand }
+}

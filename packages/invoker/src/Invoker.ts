@@ -1,24 +1,26 @@
 export type FuncName = string | number
 
-export interface InvokeReqMsg<T = any[]> {
-  key?: string | number
+export interface InvokeReq<T = any[]> {
   func: FuncName
   args?: T
   reply?: boolean
-  invoker?: string
-}
-
-export interface InvokeReq<T = any[]> extends InvokeReqMsg<T> {
   timeout?: number
   signal?: AbortSignal
+  name?: string
   [key: string]: any
+}
+
+export interface InvokeReqMsg<T = any[]> extends InvokeReq {
+  _key: string | number
+  _id: string
 }
 
 export interface InvokeRes {
   key: string | number
+  func?: FuncName
   success: boolean
   value: any
-  func?: FuncName
+  name: string
 }
 
 interface IInvoker {
@@ -77,11 +79,11 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
     const key = req.key || this.key
     const receipt = await this.send(
       {
-        key: key,
         func: req.func,
         args: req.args,
         reply: req.reply,
-        invoker: this.uniqueId,
+        _key: key,
+        _id: this.uniqueId,
       },
       req
     )
@@ -187,8 +189,11 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
   public async handleReqMsg(req: Req, sender?: any) {
     this.pendingInvokers++
     try {
-      const { key, func, args, reply, invoker } = req
-      if (invoker == this.uniqueId) {
+      const { func, args, reply, name, _key, _id } = req
+      if (_id == this.uniqueId) {
+        return
+      }
+      if (name && name != this.name) {
         return
       }
 
@@ -220,10 +225,11 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
       }
 
       const res: InvokeRes = {
-        key: key!,
+        key: _key!,
         success: !error,
         value: !error ? result : error,
         func,
+        name: this.name,
       }
 
       if (sender && reply != false) {

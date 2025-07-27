@@ -12,12 +12,6 @@ type Options = {
   resMsgType?: string
 }
 
-const defaultOptions = {
-  peerOrigin: "*",
-  invokeMsgType: "invoke-request",
-  resMsgType: "invoke-response",
-}
-
 class WindowMsgInvoker extends Invoker {
   public readonly peer: Options["peer"]
   public readonly win: Options["win"]
@@ -29,7 +23,9 @@ class WindowMsgInvoker extends Invoker {
   constructor(name: string, options: Options) {
     super(name)
     const { peer, peerOrigin, invokeMsgType, resMsgType, win } = {
-      ...defaultOptions,
+      peerOrigin: "*",
+      invokeMsgType: `invoke-request`,
+      resMsgType: `invoke-response`,
       ...options,
     }
     this.peer = peer
@@ -79,15 +75,15 @@ class WindowMsgInvoker extends Invoker {
       if (!event.data || typeof event.data !== "object") {
         return
       }
-      // console.log("onMessage: ", event.data)
+      console.log("onMessage: ", this.name, event.data)
       const { type, ...message } = event.data
       switch (type) {
         case this.invokeMsgType:
-          event.stopImmediatePropagation()
+          // event.stopImmediatePropagation()
           this.handleReqMsg(message, event.source)
           break
         case this.resMsgType:
-          event.stopImmediatePropagation()
+          // event.stopImmediatePropagation()
           this.handleResMsg(message)
           break
       }
