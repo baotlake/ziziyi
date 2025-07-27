@@ -1,5 +1,11 @@
 # @ziziyi/invoker
 
+## 1.0.8
+
+### Patch Changes
+
+- 7f50ef0: fix: Service Worker compatibility
+
 ## 1.0.7
 
 ### Patch Changes
