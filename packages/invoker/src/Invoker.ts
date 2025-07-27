@@ -112,10 +112,10 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
 
     let timer: number
     if (timeout && timeout > 0) {
-      timer = window.setTimeout(
+      timer = setTimeout(
         () => p.reject(`wait invoke "${this.name}" timeout: ${func}`),
         timeout
-      )
+      ) as never as number
     }
 
     p.promise.finally(() => {
