@@ -1,5 +1,11 @@
 # @ziziyi/invoker
 
+## 1.0.7
+
+### Patch Changes
+
+- e59b73e: fix: WindowMsgInvoker
+
 ## 1.0.6
 
 ### Patch Changes
