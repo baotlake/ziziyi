@@ -1,5 +1,11 @@
 # @ziziyi/analytics
 
+## 1.0.4
+
+### Patch Changes
+
+- 266afae: feat: add user agent parsing and custom API endpoint support.
+
 ## 1.0.3
 
 ### Patch Changes
