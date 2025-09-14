@@ -2,23 +2,25 @@ import { debounce, type DebouncedFunc } from "lodash-es"
 import UAParser from "ua-parser-js"
 import type { MPEvent, PayloadData } from "./types"
 
-const DEFAULT_DEBOUNCE_TIME = 1000 * 3
-
 export type MPConfig = {
   debug?: boolean
   measurement_id: string
   api_secret: string
   /** If you want your data to be processed in the EU */
   eu?: boolean
+  api_base?: string
 }
 
+const DEFAULT_DEBOUNCE_TIME = 1000 * 3
+const DEFAULT_ORIGIN = "https://www.google-analytics.com"
+const EU_ORIGIN = "https://region1.google-analytics.com"
+
 export async function collect(config: MPConfig, payload: PayloadData) {
-  const { measurement_id, api_secret, debug } = config
-  const origin = config.eu
-    ? "https://region1.google-analytics.com"
-    : "https://www.google-analytics.com"
-  const basePath = debug ? "/debug" : ""
-  const url = `${origin}${basePath}/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`
+  const { measurement_id, api_secret, debug, api_base, eu } = config
+  let apiBase = `${eu ? EU_ORIGIN : DEFAULT_ORIGIN}${debug ? "/debug" : ""}`
+  apiBase = api_base || apiBase
+
+  const url = `${apiBase}/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`
 
   const res = await fetch(url, {
     method: "POST",
@@ -50,7 +52,7 @@ export class MP {
   private properties: Properties = {}
   private events: MPEvent[] = []
   private debouncedFlush: DebouncedFunc<() => Promise<void>>
-  private uaCache: Map<string | true, UAParser.IResult> = new Map()
+  private eventParams: Record<string, unknown> = {}
 
   constructor(options: Options) {
     this.options = options
@@ -61,8 +63,19 @@ export class MP {
       this.options.debounce ?? DEFAULT_DEBOUNCE_TIME
     )
     if (options.ua) {
-      this.properties.user_agent =
+      const userAgent =
         typeof options.ua == "string" ? options.ua : navigator.userAgent
+      this.properties.user_agent = userAgent
+      const { os, browser, device } = UAParser(userAgent)
+      const brands = navigator.userAgentData?.brands || []
+      const uaBrand = brands.map((b) => b.brand + "/" + b.version).join(", ")
+
+      this.eventParams = {
+        ua_os: os.name,
+        ua_browser: browser.name,
+        ua_device: device.model,
+        ua_brand: uaBrand,
+      }
     }
   }
 
@@ -83,27 +96,15 @@ export class MP {
     if (!event.timestamp_micros) {
       event.timestamp_micros = Date.now() * 1000
     }
-
     if (event.parse_ua) {
-      let result = this.uaCache.get(event.parse_ua)
+      delete event.parse_ua
+    }
 
-      if (!result) {
-        const ua =
-          typeof event.parse_ua === "string"
-            ? event.parse_ua
-            : navigator.userAgent
-
-        result = UAParser(ua)
-        this.uaCache.set(event.parse_ua, result)
-      }
-      const { os, browser, device } = result
+    if (this.eventParams) {
       event.params = {
-        ua_os: os.name,
-        ua_browser: browser.name,
-        ua_device: device.model,
+        ...this.eventParams,
         ...event.params,
       }
-      delete event.parse_ua
     }
 
     this.events.push(event)

@@ -38,6 +38,21 @@ describe("collect", () => {
     )
   })
 
+  it("should call the custom api_base endpoint when provided", async () => {
+    await collect(
+      {
+        measurement_id: "test_id",
+        api_secret: "test_secret",
+        api_base: "https://region1.google-analytics.com/debug",
+      },
+      { client_id: "test_client", events: [] }
+    )
+    expect(fetch).toHaveBeenCalledWith(
+      "https://region1.google-analytics.com/debug/mp/collect?measurement_id=test_id&api_secret=test_secret",
+      expect.any(Object)
+    )
+  })
+
   it("should return the json response", async () => {
     const mockResponse = { message: "Success" }
     vi.spyOn(global, "fetch").mockResolvedValue(
@@ -96,9 +111,7 @@ describe("MP", () => {
     await mp.flush()
 
     expect(fetch).toHaveBeenCalledTimes(1)
-    const fetchBody = JSON.parse(
-      (fetch as any).mock.calls[0][1].body as string
-    )
+    const fetchBody = JSON.parse((fetch as any).mock.calls[0][1].body as string)
 
     expect(fetchBody).toEqual({
       client_id: "test_client",
@@ -107,6 +120,7 @@ describe("MP", () => {
         {
           name: "test_event",
           timestamp_micros: expect.any(Number),
+          params: expect.objectContaining({}),
         },
       ],
     })
@@ -137,4 +151,3 @@ describe("MP", () => {
     )
   })
 })
-

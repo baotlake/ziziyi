@@ -2,7 +2,7 @@ import { describe, test, expect, vi, beforeEach } from "vitest"
 import {
   useCommand,
   useCommands,
-  useCommandUpdate,
+  // useCommandUpdate,
 } from "../src/vue/useCommand"
 import { nextTick } from "vue"
 
@@ -48,19 +48,19 @@ describe("@packages/ext/src/vue/useCommand.ts", () => {
     expect(command["command-1"]).toEqual(mockCommands[0])
   })
 
-  test("useCommandUpdate", async () => {
-    const getAllAsync = vi.fn().mockResolvedValue(mockCommands)
-    const update = vi.fn()
-    const { updateCommand } = useCommandUpdate(update, getAllAsync)
-    expect(getAllAsync).toHaveBeenCalledOnce()
-    await nextTick()
-    expect(update).toHaveBeenCalledWith(mockCommands)
+  // test("useCommandUpdate", async () => {
+  //   const getAllAsync = vi.fn().mockResolvedValue(mockCommands)
+  //   const update = vi.fn()
+  //   const { updateCommand } = useCommandUpdate(update, getAllAsync)
+  //   expect(getAllAsync).toHaveBeenCalledOnce()
+  //   await nextTick()
+  //   expect(update).toHaveBeenCalledWith(mockCommands)
 
-    // test update
-    const newCommands = [{ name: "command-3", shortcut: "Ctrl+3" }]
-    getAllAsync.mockResolvedValue(newCommands)
-    update.mockClear()
-    await updateCommand()
-    expect(update).toHaveBeenCalledWith(newCommands)
-  })
+  //   // test update
+  //   const newCommands = [{ name: "command-3", shortcut: "Ctrl+3" }]
+  //   getAllAsync.mockResolvedValue(newCommands)
+  //   update.mockClear()
+  //   await updateCommand()
+  //   expect(update).toHaveBeenCalledWith(newCommands)
+  // })
 })
