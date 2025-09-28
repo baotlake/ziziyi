@@ -54,9 +54,9 @@ describe("collect", () => {
   })
 
   it("should return the json response", async () => {
-    const mockResponse = { message: "Success" }
+    const mockResponse = null
     vi.spyOn(global, "fetch").mockResolvedValue(
-      new Response(JSON.stringify(mockResponse), { status: 200 })
+      new Response(null, { status: 204 })
     )
     const result = await collect(
       { measurement_id: "test_id", api_secret: "test_secret" },

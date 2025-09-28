@@ -27,9 +27,10 @@ export async function collect(config: MPConfig, payload: PayloadData) {
     body: JSON.stringify(payload),
     keepalive: true,
   })
-  if (res.ok) {
+  if (debug && res.status == 200) {
     return res.json()
   }
+  return null
 }
 
 type Properties = Partial<Omit<PayloadData, "events">> & {
