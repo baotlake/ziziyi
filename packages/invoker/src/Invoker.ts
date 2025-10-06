@@ -165,25 +165,20 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
     return p.promise
   }
 
-  protected setReturnValue(key: string | number, success: boolean, value: any) {
+  public handleResMsg(message: InvokeRes) {
+    const { key, func, success, value } = message
+
+    if (!key || typeof success !== "boolean") {
+      console.warn(`invalid invoke response: "${func}"`, message)
+    }
+
     const p = this.responsePromises.get(key)
     if (p) {
       const fn = success != false ? p.resolve : p.reject
       fn(value)
     } else {
-      console.error(`unknown invoke callback message: ${key}`)
-      console.log(this.responsePromises)
+      console.warn(`unknown invoke response: "${func}" key: "${key}"`)
     }
-  }
-
-  public handleResMsg(message: InvokeRes) {
-    const { key, success, value } = message
-
-    if (!key || typeof success !== "boolean") {
-      console.error(`invalid invoke response: ${key}`, message)
-    }
-
-    this.setReturnValue(key, success, value)
   }
 
   public async handleReqMsg(req: Req, sender?: any) {
