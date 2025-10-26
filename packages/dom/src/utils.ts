@@ -45,6 +45,18 @@ export function handleImgError(e: Event) {
   }, 100)
 }
 
+export function fallbackImg(e: Event, ...urls: string[]) {
+  const img = e.target
+  if (!img || !(img instanceof HTMLImageElement)) return
+  let index = parseInt(img.dataset.fallbackIndex || "-1", 10)
+  index++
+  if (index < urls.length) {
+    const nextUrl = urls[index]
+    img.dataset.fallbackIndex = index.toString()
+    img.src = nextUrl
+  }
+}
+
 export function getPageIcon() {
   const icons = document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"]')
   for (let item of icons) {
