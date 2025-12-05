@@ -92,3 +92,75 @@ export function edgeAddonsUrl({
 
   return u.href
 }
+
+export function createContentRoot({
+  doc = document,
+  shadow = true,
+  shadowRootMode = "closed",
+  styleLinks = [],
+  style = "",
+  tagName = "div",
+  getParent,
+}: {
+  doc?: Document
+  shadow?: boolean
+  shadowRootMode?: "closed" | "open"
+  styleLinks?: string[]
+  style?: string
+  getParent: () => HTMLElement
+  tagName?: string
+}) {
+  const parent = getParent()
+  const ns = "http://www.w3.org/1999/xhtml"
+  const outter: HTMLElement = doc.createElementNS(ns, tagName)
+  parent.appendChild(outter)
+  let container = outter
+  if (parent.querySelector("div") == outter) {
+    container = doc.createElementNS(ns, "div")
+    outter.appendChild(container)
+  }
+
+  const root = !shadow
+    ? container
+    : container.attachShadow({ mode: shadowRootMode })
+  const appRoot = doc.createElementNS(ns, "div")
+  appRoot.id = "app"
+
+  styleLinks.forEach((href) => {
+    const link = doc.createElementNS(ns, "link") as HTMLLinkElement
+    link.rel = "stylesheet"
+    link.href = href
+    root.appendChild(link)
+  })
+
+  if (style) {
+    const styleEl = doc.createElementNS(ns, "style")
+    styleEl.innerHTML = style
+    root.appendChild(styleEl)
+
+    // not .xml page
+    if (styleEl instanceof HTMLStyleElement) {
+    }
+  }
+
+  root.appendChild(appRoot)
+
+  const restore = () => {
+    const parent = getParent()
+    console.log("[Content] restore", outter.isConnected, container.isConnected)
+    if (!outter.isConnected) {
+      parent.appendChild(outter)
+    }
+    if (container != outter && !container.isConnected) {
+      outter.appendChild(container)
+    }
+  }
+
+  return {
+    outter,
+    container,
+    root,
+    appRoot,
+    restore,
+  }
+}

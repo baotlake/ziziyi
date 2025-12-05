@@ -20,10 +20,14 @@
     "./vue": {
       "import": "./dist/vue.mjs",
       "require": "./dist/vue.js"
+    },
+    "./patchs": {
+      "import": "./dist/patchs.mjs",
+      "require": "./dist/patchs.js"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/dev.ts src/vue.ts --format esm --dts --target es2020",
+    "build": "tsup src/index.ts src/dev.ts src/vue.ts src/patchs.ts --format esm --dts --target es2020",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
