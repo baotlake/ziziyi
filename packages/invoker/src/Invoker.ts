@@ -143,10 +143,9 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
     const p = this.responsePromises.get(key) || Promise.withResolvers()
     this.responsePromises.set(key, p)
 
+    const abort = (e: Event) => p.reject(`invoke aborted: ${signal?.reason}`)
     if (signal) {
-      signal.addEventListener("abort", () =>
-        p.reject(`invoke aborted: ${signal.reason}`)
-      )
+      signal.addEventListener("abort", abort)
     }
 
     let timer: number
@@ -160,6 +159,7 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
     p.promise.finally(() => {
       this.responsePromises.delete(key)
       timer && clearTimeout(timer)
+      signal?.removeEventListener("abort", abort)
     })
 
     return p.promise
