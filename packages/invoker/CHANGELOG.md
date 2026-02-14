@@ -1,5 +1,11 @@
 # @ziziyi/invoker
 
+## 1.0.9
+
+### Patch Changes
+
+- 69665c5: fix: invoker setTimeout
+
 ## 1.0.8
 
 ### Patch Changes
