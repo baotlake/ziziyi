@@ -39,8 +39,7 @@ interface IInvoker {
 }
 
 export abstract class Invoker<Req extends InvokeReq = InvokeReq>
-  implements IInvoker
-{
+  implements IInvoker {
   public readonly name: string
   protected readonly uniqueId: string
   private count: number
@@ -150,10 +149,10 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
 
     let timer: number
     if (timeout && timeout > 0) {
-      timer = window.setTimeout(
+      timer = setTimeout(
         () => p.reject(`"${this.name}" invoke timeout: ${func} key: ${key}`),
         timeout ?? 20000
-      )
+      ) as unknown as number
     }
 
     p.promise.finally(() => {
