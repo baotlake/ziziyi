@@ -21,6 +21,10 @@
       "import": "./dist/vue.mjs",
       "require": "./dist/vue.js"
     },
+    "./react": {
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.js"
+    },
     "./patchs": {
       "import": "./dist/patchs.mjs",
       "require": "./dist/patchs.js"
