@@ -1,5 +1,11 @@
 # @ziziyi/ext
 
+## 1.0.4
+
+### Patch Changes
+
+- a6feeb9: setStorage, getStorage useStorage (react)
+
 ## 1.0.3
 
 ### Patch Changes
