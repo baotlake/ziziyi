@@ -93,6 +93,10 @@ export function edgeAddonsUrl({
   return u.href
 }
 
+
+/**
+ * 
+ */
 export function createContentRoot({
   doc = document,
   shadow = true,
@@ -124,7 +128,7 @@ export function createContentRoot({
     ? container
     : container.attachShadow({ mode: shadowRootMode })
   const appRoot = doc.createElementNS(ns, "div")
-  appRoot.id = "app"
+  // appRoot.id = "app"
 
   styleLinks.forEach((href) => {
     const link = doc.createElementNS(ns, "link") as HTMLLinkElement
