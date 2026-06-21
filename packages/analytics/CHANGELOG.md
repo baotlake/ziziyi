@@ -1,5 +1,11 @@
 # @ziziyi/analytics
 
+## 1.0.6
+
+### Patch Changes
+
+- c86de53: analytics: optional user_id, ext: useActiveTab
+
 ## 1.0.5
 
 ### Patch Changes
