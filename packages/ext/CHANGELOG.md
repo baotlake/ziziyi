@@ -1,5 +1,11 @@
 # @ziziyi/ext
 
+## 1.0.5
+
+### Patch Changes
+
+- 091d335: analytics: optional user_id, ext: useActiveTab
+
 ## 1.0.4
 
 ### Patch Changes
