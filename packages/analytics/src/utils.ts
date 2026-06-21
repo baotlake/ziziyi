@@ -1,3 +1,4 @@
+/** @deprecated use Unix timestamp */
 export function genSessionId() {
   const d = new Date()
   const T = Math.floor(d.getTime() / 1000)

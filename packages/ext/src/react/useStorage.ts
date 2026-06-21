@@ -6,56 +6,51 @@ type Options = {
 
 export default function useStorage<T extends Record<string, any>>(
   keys: T,
-  options?: Options
+  options?: Options,
 ) {
-  const [data, setData] = useState<T>(keys)
+  const [state, setState] = useState<T>(keys)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const area = options?.area || "local"
-    const storageArea = chrome.storage[area] || chrome.storage.local
+    if (typeof chrome === "undefined" || !chrome.storage) return
 
-    const listener = (changes: {
-      [key: string]: chrome.storage.StorageChange
-    }) => {
+    const area = options?.area || "local"
+    const storageArea = chrome.storage[area] ?? chrome.storage.local
+
+    const listener: Parameters<typeof chrome.storage.onChanged.addListener>[0] = (
+      changes,
+      areaName,
+    ) => {
+      if (areaName !== area) return
+
       const updates: Partial<T> = {}
       let hasUpdates = false
 
       for (const key in changes) {
         if (Object.prototype.hasOwnProperty.call(keys, key)) {
-          updates[key as keyof T] = changes[key].newValue ?? keys[key]
+          updates[key as keyof T] = (changes[key]?.newValue ?? keys[key]) as T[keyof T]
           hasUpdates = true
         }
       }
 
       if (hasUpdates) {
-        setData((prev: T) => ({ ...prev, ...updates }))
+        setState((prev: T) => ({ ...prev, ...updates }))
       }
     }
 
-    // Initial fetch
-    let p: Promise<T>
-    if (storageArea) {
-      p = storageArea.get(keys) as Promise<T>
-    } else {
-      p = Promise.resolve(keys)
-    }
-
-    p.then((value) => {
-      setData((prev: T) => ({ ...prev, ...value }))
+    storageArea.get(keys, (value) => {
+      setState((prev: T) => ({ ...prev, ...(value as T) }))
+      setLoading(false)
     })
 
-    if (storageArea && storageArea.onChanged) {
-      storageArea.onChanged.addListener(listener)
-    }
+    chrome.storage.onChanged.addListener(listener)
 
     return () => {
-      if (storageArea && storageArea.onChanged) {
-        storageArea.onChanged.removeListener(listener)
-      }
+      chrome.storage.onChanged.removeListener(listener)
     }
-  }, []) // Empty dependency array to simulate onMounted
+  }, [])
 
-  return data
+  return { state, loading }
 }
 
 export { useStorage }

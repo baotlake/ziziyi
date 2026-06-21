@@ -86,8 +86,8 @@ export class MP {
   }
 
   public get isInitialized() {
-    const { client_id, user_id } = this.properties
-    return !!client_id && !!user_id
+    const { client_id } = this.properties
+    return !!client_id
   }
 
   /**

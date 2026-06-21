@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from "vue"
 export default function useActiveTab() {
   const activeTab = ref<chrome.tabs.Tab | null>(null)
 
-  const handleTabChange = (activeInfo: chrome.tabs.TabActiveInfo) => {
+  const handleTabChange = (activeInfo: chrome.tabs.OnActivatedInfo) => {
     chrome.tabs.get(activeInfo.tabId, (tab) => {
       activeTab.value = tab
     })
