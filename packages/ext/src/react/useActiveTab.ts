@@ -14,7 +14,7 @@ export default function useActiveTab() {
 
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       if (tabs && tabs.length > 0) {
-        setActiveTab(tabs[0])
+        setActiveTab(tabs[0] || null)
       }
     })
 

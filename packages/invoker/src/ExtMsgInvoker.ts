@@ -1,8 +1,21 @@
+/// <reference types="chrome" />
+
 import Invoker, {
   type InvokeReqMsg,
   type InvokeReq,
   type InvokeRes,
+  type InvokeCtx,
+  type Options,
 } from "./Invoker"
+
+interface ExtMsgInvokeCtx extends InvokeCtx {
+  sendResponse?: (response?: any) => void
+}
+
+interface ExtMsgOptions extends Options {
+  invokeMsgType?: string
+  resMsgType?: string
+}
 
 const defaultOptions = {
   invokeMsgType: "invoke-request",
@@ -18,29 +31,44 @@ class ExtMsgInvoker extends Invoker<ExtInvokerReq> {
   public readonly resMsgType: string
   public currentSender: chrome.runtime.MessageSender | null = null
 
-  constructor(name: string, options = defaultOptions) {
-    super(name)
-    this.invokeMsgType = options.invokeMsgType
-    this.resMsgType = options.resMsgType
+  constructor(name: string, options: ExtMsgOptions = defaultOptions) {
+    super(name, options)
+    this.invokeMsgType = options.invokeMsgType || defaultOptions.invokeMsgType
+    this.resMsgType = options.resMsgType || defaultOptions.resMsgType
   }
 
   public async send(msg: InvokeReqMsg, req: ExtInvokerReq) {
+    let res: unknown = null
     if (req.tabId) {
-      chrome.tabs.sendMessage(req.tabId, {
+      res = await chrome.tabs.sendMessage(req.tabId, {
         type: this.invokeMsgType,
         tabId: req.tabId,
         ...msg,
       })
     } else {
-      chrome.runtime.sendMessage({
+      res = await chrome.runtime.sendMessage({
         type: this.invokeMsgType,
         tabId: req.tabId,
         ...msg,
       })
     }
+    return { res }
   }
 
-  public async sendRes(res: InvokeRes, sender: chrome.runtime.MessageSender) {
+  public async sendRes(
+    res: InvokeRes,
+    sender: chrome.runtime.MessageSender,
+    ctx?: ExtMsgInvokeCtx
+  ) {
+    if (this.perferReceiptResponse && ctx?.sendResponse) {
+      try {
+        ctx.sendResponse(res)
+        return
+      } catch (err) {
+        console.warn("ctx.sendResponse error", err)
+      }
+    }
+
     if (!sender) {
       return
     }
@@ -67,11 +95,14 @@ class ExtMsgInvoker extends Invoker<ExtInvokerReq> {
     ) => {
       switch (message.type) {
         case self.invokeMsgType:
-          self.handleReqMsg(message, sender)
+          self.handleReqMsg(message, sender, { sender, sendResponse })
           break
         case self.resMsgType:
           self.handleResMsg(message)
           break
+      }
+      if (this.perferReceiptResponse) {
+        return true
       }
     }
     chrome.runtime.onMessage.addListener(onMessage)

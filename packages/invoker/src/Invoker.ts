@@ -23,6 +23,15 @@ export interface InvokeRes {
   name: string
 }
 
+export interface InvokeCtx {
+  sender?: any
+  [key: string]: any
+}
+
+export interface Options {
+  perferReceiptResponse?: boolean
+}
+
 interface IInvoker {
   readonly name: string
   readonly IGNORE: Symbol
@@ -39,7 +48,8 @@ interface IInvoker {
 }
 
 export abstract class Invoker<Req extends InvokeReq = InvokeReq>
-  implements IInvoker {
+  implements IInvoker
+{
   public readonly name: string
   protected readonly uniqueId: string
   private count: number
@@ -49,8 +59,12 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
   private pendingInvokers: number
   public readonly IGNORE = Symbol("INVOKE_IGNORE")
   public currentSender: any = null
+  protected readonly perferReceiptResponse: boolean = false
 
-  constructor(name: string) {
+  constructor(
+    name: string,
+    options: Options = { perferReceiptResponse: false }
+  ) {
     this.name = name
     this.uniqueId = name + Math.round(Math.random() * 1e6)
     this.count = 0
@@ -58,6 +72,7 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
     this.services = new Map()
     this.waitingPromises = new Map()
     this.pendingInvokers = 0
+    this.perferReceiptResponse = options.perferReceiptResponse || false
   }
 
   protected get key() {
@@ -72,7 +87,11 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
     msg: InvokeReqMsg,
     req: InvokeReq
   ): PromiseLike<void | { res?: any }>
-  public abstract sendRes(res: InvokeRes, sender: any): PromiseLike<void>
+  public abstract sendRes(
+    res: InvokeRes,
+    sender: any,
+    ctx?: InvokeCtx
+  ): PromiseLike<void>
 
   public async invoke<T = any>(req: Req): Promise<T> {
     const key = req.key || this.key
@@ -130,13 +149,27 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
     req: InvokeReq,
     receipt?: { res?: any } | void
   ): Promise<T> {
-    if (receipt && receipt.res) {
-      return receipt.res as T
-    }
-
+    console.log("getReturnValue: ", key, req, receipt)
+    
     const { func, timeout, signal, reply } = req
     if (reply == false) {
       return null as T
+    }
+
+    if (receipt && receipt.res) {
+      if (!this.perferReceiptResponse) {
+        // conpatibility with old version
+        return receipt.res as T
+      }
+
+      const res = receipt.res as InvokeRes
+      if (
+        typeof receipt.res === "object" &&
+        res.key == key &&
+        typeof res.success == "boolean"
+      ) {
+        return res.success != false ? res.value : Promise.reject(res.value)
+      }
     }
 
     const p = this.responsePromises.get(key) || Promise.withResolvers()
@@ -180,7 +213,7 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
     }
   }
 
-  public async handleReqMsg(req: Req, sender?: any) {
+  public async handleReqMsg(req: Req, sender?: any, ctx?: InvokeCtx) {
     this.pendingInvokers++
     try {
       const { func, args, reply, name, _key, _id } = req
@@ -226,8 +259,8 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
         name: this.name,
       }
 
-      if (sender && reply != false) {
-        await this.sendRes(res, sender)
+      if (reply != false) {
+        await this.sendRes(res, sender, ctx)
       }
       return res
     } finally {
