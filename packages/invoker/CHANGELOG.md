@@ -1,5 +1,11 @@
 # @ziziyi/invoker
 
+## 1.0.10
+
+### Patch Changes
+
+- 9a7e4cd: feat: perferReceiptResponse option
+
 ## 1.0.9
 
 ### Patch Changes
