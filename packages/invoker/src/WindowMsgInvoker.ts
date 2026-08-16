@@ -69,6 +69,7 @@ class WindowMsgInvoker extends Invoker {
     const win = typeof this.win === "function" ? this.win() : this.win || window
 
     const onMessage = (event: MessageEvent) => {
+      // TODO: options
       // if (event.source !== this.peer) {
       //   return
       // }

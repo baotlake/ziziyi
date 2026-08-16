@@ -95,17 +95,34 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
 
   public async invoke<T = any>(req: Req): Promise<T> {
     const key = req.key || this.key
-    const receipt = await this.send(
-      {
-        func: req.func,
-        args: req.args,
-        reply: req.reply,
-        _key: key,
-        _id: this.uniqueId,
-      },
-      req
-    )
-    return this.getReturnValue<T>(key, req, receipt)
+    const response =
+      req.reply == false
+        ? undefined
+        : this.responsePromises.get(key) || Promise.withResolvers()
+
+    if (response) {
+      this.responsePromises.set(key, response)
+      // A fast error response may arrive before this promise is returned.
+      void response.promise.catch(() => {})
+    }
+
+    try {
+      const receipt = await this.send(
+        {
+          func: req.func,
+          args: req.args,
+          reply: req.reply,
+          _key: key,
+          _id: this.uniqueId,
+        },
+        req
+      )
+      return await this.getReturnValue<T>(key, req, receipt)
+    } finally {
+      if (response && this.responsePromises.get(key) === response) {
+        this.responsePromises.delete(key)
+      }
+    }
   }
 
   public add(func: FuncName, service: Function) {
@@ -149,8 +166,8 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
     req: InvokeReq,
     receipt?: { res?: any } | void
   ): Promise<T> {
-    console.log("getReturnValue: ", key, req, receipt)
-    
+    // console.log("getReturnValue: ", key, req, receipt)
+
     const { func, timeout, signal, reply } = req
     if (reply == false) {
       return null as T
@@ -188,11 +205,12 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
       ) as unknown as number
     }
 
-    p.promise.finally(() => {
-      this.responsePromises.delete(key)
-      timer && clearTimeout(timer)
-      signal?.removeEventListener("abort", abort)
-    })
+    p.promise
+      .finally(() => {
+        timer && clearTimeout(timer)
+        signal?.removeEventListener("abort", abort)
+      })
+      .catch(() => {})
 
     return p.promise
   }
