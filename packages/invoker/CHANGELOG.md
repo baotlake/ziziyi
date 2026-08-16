@@ -1,5 +1,11 @@
 # @ziziyi/invoker
 
+## 1.0.11
+
+### Patch Changes
+
+- 0054673: fix(invoker): register response before send
+
 ## 1.0.10
 
 ### Patch Changes
