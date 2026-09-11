@@ -33,6 +33,8 @@ export default function useStorageState<T extends Record<string, any>>(
 
     try {
       Object.assign(state, await storageArea.get(defaults))
+    } catch (error) {
+      console.warn("Failed to load extension storage; using defaults", error)
     } finally {
       loading.value = false
     }
