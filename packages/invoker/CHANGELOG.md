@@ -1,5 +1,11 @@
 # @ziziyi/invoker
 
+## 1.0.12
+
+### Patch Changes
+
+- abfe654: fix: respect extension message response ownership
+
 ## 1.0.11
 
 ### Patch Changes
