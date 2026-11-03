@@ -73,3 +73,12 @@ describe("Invoker.invoke", () => {
     expect(invoker.pendingResponses).toBe(0)
   })
 })
+
+describe("waitInvoke cleanup", () => {
+  it("does not create an unhandled rejection on timeout", async () => {
+    const invoker = new TestInvoker()
+    await expect(
+      invoker.waitInvoke({ func: "missing", timeout: 10 })
+    ).rejects.toContain("timeout")
+  })
+})

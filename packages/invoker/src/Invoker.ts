@@ -112,6 +112,7 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
           func: req.func,
           args: req.args,
           reply: req.reply,
+          name: req.name,
           _key: key,
           _id: this.uniqueId,
         },
@@ -123,6 +124,21 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
         this.responsePromises.delete(key)
       }
     }
+  }
+
+  /** Whether this context owns a service; waitInvoke() is observation only. */
+  protected canHandleRequest(req: Req): boolean {
+    return (
+      !!req &&
+      typeof req === "object" &&
+      req._id !== this.uniqueId &&
+      (!req.name || req.name === this.name) &&
+      this.services.has(req.func)
+    )
+  }
+
+  protected reportError(error: unknown) {
+    console.error("invoke error: ", error)
   }
 
   public add(func: FuncName, service: Function) {
@@ -153,10 +169,11 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
       ) as never as number
     }
 
-    p.promise.finally(() => {
+    const cleanup = () => {
       this.waitingPromises.delete(func)
       timer && clearTimeout(timer)
-    })
+    }
+    void p.promise.then(cleanup, cleanup)
 
     return p.promise
   }
@@ -216,19 +233,16 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
   }
 
   public handleResMsg(message: InvokeRes) {
-    const { key, func, success, value } = message
+    const { key, success, value } = message
 
-    if (!key || typeof success !== "boolean") {
-      console.warn(`invalid invoke response: "${func}"`, message)
-    }
+    if (key == null || typeof success !== "boolean") return
 
     const p = this.responsePromises.get(key)
     if (p) {
       const fn = success != false ? p.resolve : p.reject
       fn(value)
-    } else {
-      console.warn(`unknown invoke response: "${func}" key: "${key}"`)
     }
+    // Broadcast responses and late responses need not belong to this instance.
   }
 
   public async handleReqMsg(req: Req, sender?: any, ctx?: InvokeCtx) {
@@ -244,7 +258,8 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
 
       this.currentSender = sender
       let result = null
-      let error = null
+      let error: unknown
+      let failed = false
 
       try {
         const waiting = this.waitingPromises.get(func)
@@ -256,12 +271,11 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
         if (service) {
           result = await service(...(args || []))
         } else {
-          error = `unknown service: ${func}`
-          console.warn(`unknown service: ${func}`)
+          // A waiter observes the call but must not answer for its service.
           return null
         }
       } catch (err) {
-        console.error("invoke error: ", err)
+        failed = true
         error = err
       }
 
@@ -271,14 +285,16 @@ export abstract class Invoker<Req extends InvokeReq = InvokeReq>
 
       const res: InvokeRes = {
         key: _key!,
-        success: !error,
-        value: !error ? result : error,
+        success: !failed,
+        value: failed ? error : result,
         func,
         name: this.name,
       }
 
       if (reply != false) {
         await this.sendRes(res, sender, ctx)
+      } else if (failed) {
+        this.reportError(error)
       }
       return res
     } finally {
